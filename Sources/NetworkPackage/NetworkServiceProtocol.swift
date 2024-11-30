@@ -6,9 +6,7 @@
 //
 
 
+@available(iOS 15, macOS 12.0, *)
 public protocol NetworkServiceProtocol {
-    func fetchData<T: Codable>(
-        urlString: String,
-        completion: @escaping @Sendable (Result<T, NetworkError>) -> Void
-    )
+    func fetchData<T: Codable>(urlString: String, headers: [String: String]?) async throws -> T
 }
