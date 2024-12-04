@@ -2,7 +2,7 @@
 // https://docs.swift.org/swift-book
 import Foundation
 
-public enum NetworkError: Error {
+public enum NetworkError: Error, LocalizedError {
     case invalidURL
     case httpResponseError
     case statusCodeError(statusCode: Int)
@@ -10,6 +10,25 @@ public enum NetworkError: Error {
     case decodeError(error: Error)
     case encodingError
     case unknownError
+
+    public var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "The URL provided is invalid."
+        case .httpResponseError:
+            return "The server response could not be processed."
+        case .statusCodeError(let statusCode):
+            return "Request failed with status code: \(statusCode)."
+        case .noData:
+            return "No data was returned from the server."
+        case .decodeError(let error):
+            return "Failed to decode the response: \(error.localizedDescription)."
+        case .encodingError:
+            return "Failed to encode the request body."
+        case .unknownError:
+            return "An unknown error occurred."
+        }
+    }
 }
 
 public final class NetworkService: NetworkServiceProtocol {
