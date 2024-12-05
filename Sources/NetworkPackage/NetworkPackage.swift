@@ -51,9 +51,6 @@ public final class NetworkService: NetworkServiceProtocol {
         
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
         
-        if let rawJSON = String(data: data, encoding: .utf8) {
-            print("Raw JSON Response: \(rawJSON)")
-        }
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NetworkError.httpResponseError
