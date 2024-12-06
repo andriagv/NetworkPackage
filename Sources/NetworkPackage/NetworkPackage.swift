@@ -35,22 +35,8 @@ public final class NetworkService: NetworkServiceProtocol {
     public init() {}
 
     @available(iOS 15, macOS 12.0, *)
-    public func fetchData<T: Codable>(urlString: String, headers: [String: String]? = nil) async throws -> T {
-        guard let url = URL(string: urlString) else {
-            throw NetworkError.invalidURL
-        }
-        
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = "GET"
-        
-        if let headers = headers {
-            for (key, value) in headers {
-                urlRequest.setValue(value, forHTTPHeaderField: key)
-            }
-        }
-        
+    private func performRequest<T: Codable>(urlRequest: URLRequest) async throws -> T {
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
-        
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NetworkError.httpResponseError
@@ -68,6 +54,24 @@ public final class NetworkService: NetworkServiceProtocol {
         } catch {
             throw NetworkError.decodeError(error: error)
         }
+    }
+
+    @available(iOS 15, macOS 12.0, *)
+    public func fetchData<T: Codable>(urlString: String, headers: [String: String]? = nil) async throws -> T {
+        guard let url = URL(string: urlString) else {
+            throw NetworkError.invalidURL
+        }
+        
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "GET"
+        
+        if let headers = headers {
+            for (key, value) in headers {
+                urlRequest.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        
+        return try await performRequest(urlRequest: urlRequest)
     }
 
     @available(iOS 15, macOS 12.0, *)
@@ -92,23 +96,6 @@ public final class NetworkService: NetworkServiceProtocol {
             throw NetworkError.encodingError
         }
         
-        let (data, response) = try await URLSession.shared.data(for: urlRequest)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw NetworkError.httpResponseError
-        }
-        
-        guard (200...299).contains(httpResponse.statusCode) else {
-            throw NetworkError.statusCodeError(statusCode: httpResponse.statusCode)
-        }
-        
-        do {
-            let decoder = JSONDecoder()
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
-            let decodedData = try decoder.decode(T.self, from: data)
-            return decodedData
-        } catch {
-            throw NetworkError.decodeError(error: error)
-        }
+        return try await performRequest(urlRequest: urlRequest)
     }
 }
