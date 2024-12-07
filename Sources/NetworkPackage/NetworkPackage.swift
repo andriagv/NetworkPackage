@@ -10,7 +10,8 @@ public enum NetworkError: Error, LocalizedError {
     case decodeError(error: Error)
     case encodingError
     case unknownError
-
+    case unauthorized 
+    
     public var errorDescription: String? {
         switch self {
         case .invalidURL:
@@ -27,13 +28,15 @@ public enum NetworkError: Error, LocalizedError {
             return "Failed to encode the request body."
         case .unknownError:
             return "An unknown error occurred."
+        case .unauthorized: // დაამატეთ აღწერა
+            return "The request is unauthorized. Please log in again."
         }
     }
 }
 
 public final class NetworkService: NetworkServiceProtocol {
     public init() {}
-
+    
     @available(iOS 15, macOS 12.0, *)
     private func performRequest<T: Codable>(urlRequest: URLRequest) async throws -> T {
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
@@ -55,7 +58,7 @@ public final class NetworkService: NetworkServiceProtocol {
             throw NetworkError.decodeError(error: error)
         }
     }
-
+    
     @available(iOS 15, macOS 12.0, *)
     public func fetchData<T: Codable>(urlString: String, headers: [String: String]? = nil) async throws -> T {
         guard let url = URL(string: urlString) else {
@@ -73,7 +76,7 @@ public final class NetworkService: NetworkServiceProtocol {
         
         return try await performRequest(urlRequest: urlRequest)
     }
-
+    
     @available(iOS 15, macOS 12.0, *)
     public func postData<T: Codable>(urlString: String, body: [String: Any], headers: [String: String]? = nil) async throws -> T {
         guard let url = URL(string: urlString) else {
